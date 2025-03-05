@@ -20,16 +20,16 @@ module "cosmos" {
         offer_type                            = "Standard"
         kind                                  = "GlobalDocumentDB"
         analytical_storage_enabled            = false  
-        public_network_access_enabled         = false  # Increased security in prod
+        public_network_access_enabled         = false 
         key_vault_key_id                      = null
-        access_key_metadata_writes_enabled    = false  # Restrict metadata writes for added security
-        network_acl_bypass_for_azure_services = false # Prevent Azure services from bypassing ACL in prod
+        access_key_metadata_writes_enabled    = false  
+        network_acl_bypass_for_azure_services = false 
         is_virtual_network_filter_enabled     = true
     }
  }
 
   consistency_policy = {
-    consistency_level       = "Strong"  # Strong consistency for better data reliability in prod
+    consistency_level       = "Strong"  
   }
 
   failover_locations = [
@@ -38,24 +38,24 @@ module "cosmos" {
       failover_priority = 0
     },
      {
-      location          = "eastus"  # Adding a secondary failover region for HA in prod
+      location          = "eastus"  
       failover_priority = 1
     }
   ]
 
-  # capabilities = ["EnableServerless"]  #  No changes required for prod
+  capabilities = ["EnableServerless"]  
 
   virtual_network_rules = [
     {
       id = module.networking.db_subnet_id
       ignore_missing_vnet_service_endpoint = false
     }
-  ]  #  No changes required for prod
+  ]  
 
   backup = {
-     type                = "Continuous"  # Continuous backup for better disaster recovery in prod
-     interval_in_minutes = null  # Not needed for continuous backup
-     retention_in_hours  = null  # Not needed for continuous backup
+     type                = "Continuous"  
+     interval_in_minutes = null  
+     retention_in_hours  = null  
   }
 
   cors_rules = {
@@ -64,42 +64,42 @@ module "cosmos" {
     allowed_origins    = ["*"]
     exposed_headers    = ["*"]
     max_age_in_seconds = 3600
-  }  #  No changes required for prod
+  }  
 
-  enable_advanced_threat_protection = true  #  No changes required for prod
-  enable_private_endpoint       = true  # No changes required for prod
-  virtual_network_name          = module.networking.virtual_network_name  #  No changes required for prod
-  private_subnet_address_prefix = module.networking.pvt_subnet.address_prefix  #  No changes required for prod
+  enable_advanced_threat_protection = true  
+  enable_private_endpoint       = true  
+  virtual_network_name          = module.networking.virtual_network_name  
+  private_subnet_address_prefix = module.networking.pvt_subnet.address_prefix 
 
   allowed_ip_range_cidrs = [
     "1.2.3.4",
     "0.0.0.0"
   ]
   
-   dedicated_instance_size = "Cosmos.D8s"  # Increased instance size for higher workloads in prod
-   dedicated_instance_count = 2  # Increased instance count for better performance in prod
+   dedicated_instance_size = "Cosmos.D8s" 
+   dedicated_instance_count = 2  
 
-  log_analytics_workspace_name = module.monitoring.log_analytics_workspace_name  #  No changes required for prod
-  storage_account_name = module.storage.storage_account_name  #  No changes required for prod
+  log_analytics_workspace_name = module.monitoring.log_analytics_workspace_name  
+  storage_account_name = module.storage.storage_account_name  
   
   tags = {
     ProjectName  = "fujitsu-icp"
-     Environment  = "prod"  # Updated tag to reflect production environment
+     Environment  = "prod"  
   }
 }
 
 module "redis_service" {
   source              = "../../modules/redis_service"
-   redis_name          = "redis-cache-prod-unique"  # Updated to a unique name for production
-   location            = "westus"  # Updated to a production region based on HA requirements
+   redis_name          = "redis-cache-prod-unique" 
+   location            = "westus"  
   resource_group_name  = azurerm_resource_group.resourcegroup.name
-   sku_name            = "Basic"  # Increased SKU for better performance and enhanced security in production
-   capacity            = 1  # Increased capacity to handle production workloads efficiently
-  # enable_non_ssl_port = false  # This is okay for both prod and dev; no changes required.
+   sku_name            = "Basic"  
+   capacity            = 1  
+  enable_non_ssl_port = false  
 
   tags = {
     ProjectName  = "fujitsu-icp"
-    Environment  = "prod" # Updated for production
+    Environment  = "prod" 
   }
 }
 
@@ -128,7 +128,7 @@ module "networking" {
       }
 
       nsg_inbound_rules = [
-        # [name, priority, direction, access, protocol, destination_port_range, source_address_prefix, destination_address_prefix]
+       
 
         # Allow HTTP traffic from Application Gateway
         ["web_allow_http", 100, "Inbound", "Allow", "Tcp", "80", "10.1.1.0/27", "*"],
@@ -239,7 +239,7 @@ module "networking" {
 
   tags = {
     ProjectName  = "fujitsu-icp"
-    Environment  = "prod" # Updated for production
+    Environment  = "prod" 
   }
 }
 
@@ -251,7 +251,7 @@ module "storage" {
   storage_account_name  = "${local.prefix}storage"
   account_kind = "StorageV2"
   access_tier = "Hot"
-  skuname = "Premium_LRS" # Changed for production
+  skuname = "Premium_LRS"
 
   # enable_advanced_threat_protection = true
 
@@ -276,7 +276,7 @@ module "storage" {
 
   tags = {
     ProjectName  = "fujitsu-icp"
-    Environment  = "prod" # Updated for production
+    Environment  = "prod"
   }
 }
 
@@ -289,7 +289,7 @@ module "frontend-app-service" {
   app_service_plan_name = "${local.prefix}-frontendserviceplan"
   service_plan = {
     os_type = "Linux"
-    sku_name = "P1v3" #  Modified: Changed from B1 to P1v3 for production to ensure better performance and scaling
+    sku_name = "P1v3" 
   }
 
   app_service_name       = "${local.prefix}-fe-flutter-prod-app"
@@ -297,49 +297,49 @@ module "frontend-app-service" {
   enable_https           = true
 
   site_config = {
-    always_on                 = true #  No changes required for prod
-    ftps_state                = "FtpsOnly" #  No changes required for prod
-    http2_enabled             = true #  No changes required for prod
+    always_on                 = true 
+    ftps_state                = "FtpsOnly" 
+    http2_enabled             = true 
   }
 
   application_stack = {
     type    = "NODE"
-    version = "20-lts" #  No changes required for prod
+    version = "20-lts" 
   }
 
   # (Optional) A key-value pair of Application Settings
   app_settings = {
-    APPINSIGHTS_PROFILERFEATURE_VERSION             = "1.0.0" #  No changes required for prod
-    APPINSIGHTS_SNAPSHOTFEATURE_VERSION             = "1.0.0" #  No changes required for prod
-    DiagnosticServices_EXTENSION_VERSION            = "~3" #  No changes required for prod
-    InstrumentationEngine_EXTENSION_VERSION         = "disabled" #  No changes required for prod
-    SnapshotDebugger_EXTENSION_VERSION              = "disabled" #  No changes required for prod
-    XDT_MicrosoftApplicationInsights_BaseExtensions = "disabled" #  No changes required for prod
-    XDT_MicrosoftApplicationInsights_Java           = "1" #  No changes required for prod
-    XDT_MicrosoftApplicationInsights_Mode           = "recommended" #  No changes required for prod
-    XDT_MicrosoftApplicationInsights_NodeJS         = "1" #  No changes required for prod
-    XDT_MicrosoftApplicationInsights_PreemptSdk     = "disabled" #  No changes required for prod
+    APPINSIGHTS_PROFILERFEATURE_VERSION             = "1.0.0" 
+    APPINSIGHTS_SNAPSHOTFEATURE_VERSION             = "1.0.0" 
+    DiagnosticServices_EXTENSION_VERSION            = "~3" 
+    InstrumentationEngine_EXTENSION_VERSION         = "disabled" 
+    SnapshotDebugger_EXTENSION_VERSION              = "disabled" 
+    XDT_MicrosoftApplicationInsights_BaseExtensions = "disabled"
+    XDT_MicrosoftApplicationInsights_Java           = "1" 
+    XDT_MicrosoftApplicationInsights_Mode           = "recommended" 
+    XDT_MicrosoftApplicationInsights_NodeJS         = "1" 
+    XDT_MicrosoftApplicationInsights_PreemptSdk     = "disabled" 
   }
 
-  enable_backup        = true #  No changes required for prod
-  storage_account_name = module.storage.storage_account_name #  No changes required for prod
-  storage_container_name = "frontend-appservice-backup" #  No changes required for prod
+  enable_backup        = true 
+  storage_account_name = module.storage.storage_account_name 
+  storage_container_name = "frontend-appservice-backup" 
   backup_settings = {
-    enabled                  = true #  No changes required for prod
-    name                     = "DefaultBackup" #  No changes required for prod
-    frequency_interval       = 1 # No changes required for prod
-    frequency_unit           = "Day" #  No changes required for prod
-    retention_period_days    = 180 #  Modified: Increased retention period from 90 to 180 days for better disaster recovery in prod
+    enabled                  = true 
+    name                     = "DefaultBackup"
+    frequency_interval       = 1
+    frequency_unit           = "Day" 
+    retention_period_days    = 180
   }
 
-  app_insights_name = "frontendapp" #  No changes required for prod
+  app_insights_name = "frontendapp"
 
-  enable_vnet_integration = true #  No changes required for prod
-  subnet_id = module.networking.frontend_subnet_id #  No changes required for prod
+  enable_vnet_integration = true 
+  subnet_id = module.networking.frontend_subnet_id
 
   tags = {
-    ProjectName  = "fujitsu-icp" #  No changes required for prod
-    Environment  = "prod" # Modified: Changed from "dev" to "prod"
+    ProjectName  = "fujitsu-icp" 
+    Environment  = "prod" 
   }
 }
 
@@ -351,8 +351,7 @@ module "api_management" {
   api_management_name = "${local.prefix}-api-management-v2"
   publisher_name      = "Rock Paper Panda"
   publisher_email     = "team@rockpaperpanda.com"
-  sku_name            = "Premium_1" #  Modified: Changed from "Developer_1" to "Premium_1" for production to support higher performance, scaling, and VNET integration
-
+  sku_name            = "Premium_1" 
 }
 
 module "communication_service" {
@@ -361,11 +360,11 @@ module "communication_service" {
   resource_group_name     = azurerm_resource_group.resourcegroup.name
   location                = local.location
   communication_service_name = "${local.prefix}-communication-svc"
-  data_location           = local.data_location #  No changes required for prod
+  data_location           = local.data_location 
 
 tags = {
-    ProjectName  = "fujitsu-icp" #  No changes required for prod
-    Environment  = "prod" # Modified: Changed from "dev" to "prod"
+    ProjectName  = "fujitsu-icp"
+    Environment  = "prod" 
   }
 }
 
@@ -378,7 +377,7 @@ module "backend-app-service" {
   app_service_plan_name = "${local.prefix}-backendserviceplan"
   service_plan = {
     os_type   = "Linux"
-    sku_name  = "P1v2" #  Changed from "B1" to "P1v2" for better performance in production
+    sku_name  = "P1v2" 
   }
 
   app_service_name       = "${local.prefix}-be-python-prod-app"
@@ -393,7 +392,7 @@ module "backend-app-service" {
 
   application_stack = {
     type    = "PYTHON"
-    version = "3.9" #  No changes required for prod
+    version = "3.9" 
   }
 
   # (Optional) A key-value pair of Application Settings
@@ -418,7 +417,7 @@ module "backend-app-service" {
     name                     = "DefaultBackup"
     frequency_interval       = 1
     frequency_unit           = "Day"
-    retention_period_days    = 180 #  Increased from 90 to 180 for longer data retention in production
+    retention_period_days    = 180 
   }
 
   app_insights_name = "backendapp"
@@ -427,7 +426,7 @@ module "backend-app-service" {
 
   tags = {
     ProjectName  = "fujitsu-icp"
-    Environment  = "prod" #  Changed from "dev" to "prod" for production environment
+    Environment  = "prod" 
   }
 }
 
@@ -438,7 +437,7 @@ module "key-vault" {
   location            = local.location
 
   key_vault_name             = "${local.prefix}-keyvault"
-  key_vault_sku_pricing_tier = "premium" #  Premium SKU is ideal for production
+  key_vault_sku_pricing_tier = "premium" 
 
   # Once `Purge Protection` has been Enabled it's not possible to Disable it
   # Deleting the Key Vault with `Purge Protection` enabled will schedule the Key Vault to be deleted
@@ -482,7 +481,7 @@ module "key-vault" {
   # When you Add `usernames` with empty password this module creates a strong random password
   # use .tfvars file to manage the secrets as variables to avoid security issues.
   secrets = {
-    "message" = "Hello, production!" #  Changed secret message for production
+    "message" = "Hello, production!" 
     "vmpass"  = ""
   }
 
@@ -494,7 +493,7 @@ module "key-vault" {
 
   tags = {
     ProjectName  = "fujitsu-icp"
-    Environment  = "prod" #  Updated environment from "dev" to "prod"
+    Environment  = "prod" 
   }
 }
 
@@ -516,8 +515,8 @@ module "application-gateway" {
   }
 
   autoscale_configuration = {
-    min_capacity = 2   #  Ensure at least 2 instances for high availability  
-    max_capacity = 10  #  Increased max capacity for peak loads  
+    min_capacity = 2    
+    max_capacity = 10  
   }
 
   backend_address_pools = [
@@ -559,7 +558,7 @@ module "application-gateway" {
     }
   ]
 
-     # No changes needed for request routing rules  
+     
   request_routing_rules = [
     {
       name                       = "appgw-prod-eastus-be-rqrt"
@@ -592,14 +591,14 @@ module "application-gateway" {
   # A list with a single user managed identity id to be assigned to access Keyvault
   # identity_ids = ["${azurerm_user_assigned_identity.example.id}"]
 
-   # No changes required for logging & monitoring  
+  
   log_analytics_workspace_name = module.monitoring.log_analytics_workspace_name
   storage_account_name         = module.storage.storage_account_name
 
-   # Tags remain unchanged  
+  
   tags = {
     ProjectName = "fujitsu-icp"
-    Environment = "prod"  #  Changed from dev to prod  
+    Environment = "prod"    
   }
 }
 
@@ -609,7 +608,7 @@ module "monitoring" {
   location            = local.location
 
   log_analytics_workspace_name = "${local.prefix}-logws"
-  sku                          = "PerGB2018" #  No change, as it's a standard SKU for log analytics.
-  retention_in_days            = "90"        #  Increased from 30 days to 90 for better log retention in production.
+  sku                          = "PerGB2018" 
+  retention_in_days            = "90"        
 }
 
